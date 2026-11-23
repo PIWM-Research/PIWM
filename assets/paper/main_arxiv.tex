@@ -1,0 +1,729 @@
+\documentclass{article}
+\usepackage{iclr2027_conference,times} \iclrfinalcopy 
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,booktabs,graphicx,tabularx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{wrapfig}
+\usepackage{caption}
+\title{See, Foresee, Act: Intent-Aware World\\Modeling for Proactive Retail Assistance}
+
+\author{
+    \textbf{Honghui Zhang},
+    \textbf{Anna Min},
+    \textbf{Chenmeinian Guo}, 
+    \textbf{Yujia Zhang}, \\ 
+    \textbf{Zezhou Zhang},  
+    \textbf{Yichen Yu}, 
+    \textbf{Guanyu Liu},
+    \textbf{Yongming Qin}, 
+    \textbf{Chongguo Song}, \\
+    \textbf{Mengyue Yang}, 
+    \textbf{Lei Yu},
+    \textbf{Tianyu Shi}
+    \vspace{0.5em} \\
+    \textsuperscript{1}Meetvista Research Team\\ \quad
+    \vspace{0.5em} \\
+    {\small \textbf{Correspondence:} \href{mailto:tianyu.shi3@mcgill.ca}{tianyu.shi3@mcgill.ca}}
+}
+
+% Working draft, 14 September 2026. Do not enable camera-ready mode.
+\newcommand{\hold}{\textsc{Hold}}
+\newcommand{\greet}{\textsc{Greet}}
+\newcommand{\elicit}{\textsc{Elicit}}
+\newcommand{\inform}{\textsc{Inform}}
+\newcommand{\recommend}{\textsc{Recommend}}
+\usepackage{longtable,array,calc}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\begin{document}
+\maketitle
+
+
+\begin{abstract}
+World models allow agents to anticipate action consequences, but proactive assistance also requires interpreting incomplete observations and deciding whether to intervene before a user asks for help. We propose See--Foresee--Act and instantiate it as the Proactive Intent World Model \textbf{(PIWM) }for retail assistance. See preserves role-relevant observable evidence alongside AIDA--BDI customer states; Foresee predicts one-step consequences for candidate actions; Act explicitly compares those consequences, including non-intervention. GuidanceSalesBench supplies predominantly synthetic supervision linking observations, states, candidate outcomes, and decisions. On 509 Full test examples, consequence-based selection achieves 63.65\% decision accuracy, compared with 45.38\% for direct decision output, an improvement of 18.27 percentage points. These results support candidate-consequence comparison for decision reasoning in this retail task. Code and data will be released after consent verification and upon publication.
+\end{abstract}
+
+
+\section{Introduction}\label{introduction}
+
+\begin{wrapfigure}[13]{r}{0.6\textwidth}
+  \vspace{-8pt}
+  \centering
+  \includegraphics[width=\linewidth]{figs/0.png}
+  \captionsetup{font=footnotesize,labelfont=bf,skip=3pt}
+  \caption{Direct decision versus PIWM. See preserves observable evidence and inferred states; Foresee predicts one-step outcomes; Act compares alternatives, including non-intervention (Hold).}
+  \label{fig:teaser}
+  \vspace{-4pt}
+\end{wrapfigure}
+
+World models enable agents to predict action-conditioned state changes
+and use these predictions to guide decisions
+\citep{hafner2020dreamer, hafner2023mastering}. Proactive assistance
+additionally requires inferring service needs from incomplete
+observations and deciding whether to intervene before a user makes an
+explicit request \citep{yang2026contextagent, horvitz1999principles}. A
+retail customer may compare products, inspect labels, or repeatedly
+examine the same item. These behaviors may indicate a need for
+assistance or independent exploration. We study proactive retail assistance as a decision problem: given sparse pre-interaction observations, an agent must infer the customer’s service needs and decide whether and how to intervene by considering the consequences of both assistance and silence\citep{fu2026prism}.
+
+% \begin{wrapfigure}{r}{0.6\linewidth}
+%   \centering
+%   \includegraphics[width=0.6\linewidth]{figs/0.png}
+%   \caption{Mo}
+%   \label{fig:piwm-motivation}
+% \end{wrapfigure}
+
+
+
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/1-v3.png}
+\caption{Motivation and task scope of PIWM. Proactive retail assistance requires deciding whether and how to help before an explicit customer request. The intent world represents observed human--object evidence and inferred AIDA--BDI states, while the interaction world associates candidate service actions with normative next-state targets. We evaluate sparse-video \emph{See}, action-conditioned \emph{Foresee}, and intervention selection including \hold{} at a single decision point.}
+\vspace{-20pt}
+\label{fig:piwm-motivation}
+\end{figure*}
+
+
+
+This problem presents two challenges: grounding customer-state inference in observable evidence and selecting interventions under uncertain service needs. First, observations must be translated into task-relevant
+states rather than generic descriptions \citep{yang2026contextagent}.
+Intent alone can compress away the evidence needed to distinguish a
+request for information from independent comparison: similar inferred
+intentions can arise from different gaze, engagement, and
+product-handling patterns. Second, action selection must weigh
+assistance benefits against uncertain needs and interruption costs
+\citep{horvitz1999principles, fu2026prism}. This requires considering
+what happens if the agent remains silent as well as what happens if it
+acts. We formulate the task at a single decision point, linking sparse-video observations to structured customer states, action-conditioned normative outcomes, and intervention choices that include remaining silent.
+
+We propose the \textbf{See--Foresee--Act framework} and instantiate it
+as \textbf{PIWM} (Proactive Intent World Model) for retail assistance. See extracts role-relevant
+human--object evidence and predicts a structured customer state from
+sparse video. Foresee predicts one-step normative outcomes for each
+candidate service action. Act receives the current evidence, inferred
+state, and candidate forecasts, then explicitly compares alternatives
+including non-intervention (Hold). The common state and action interfaces support both end-to-end assistance decisions and controlled comparisons of evidence use and consequence prediction.
+
+PIWM combines \textbf{AIDA(Attention-Interest-Desire-Action)} purchasing stages \citep{barry1987development} with
+\textbf{BDI} fields for\textbf{ beliefs, desires, and intentions} \citep{rao1995bdi},
+while retaining explicit evidence about engagement, gaze, posture, and
+object interaction. The inferred fields express a task interpretation;
+the evidence fields preserve the observations supporting it
+\citep{rabinowitz2018machine, bai2025qwen25vltechnicalreport}. Both
+enter consequence prediction and action selection. This design lets
+downstream modules compare service alternatives against the same task
+interpretation and its visible basis.
+
+Hold is modeled through the same consequence interface as Greet, Elicit,
+Inform, and Recommend. An available silence option establishes what the
+agent may choose; a forecast describes why waiting could preserve
+independent exploration or avoid premature interruption. We therefore
+test the contribution of the Hold forecast while retaining the action
+itself and the non-intervention instruction. This connects the value of
+non-intervention to the comparison used for other service actions
+\citep{horvitz1999principles, lu2024proactive}.
+
+To support systematic evaluation of this task, we construct \textbf{GuidanceSalesBench}, linking sparse pre-interaction videos, structured customer states, candidate-action outcomes, and normative action labels. Rule-guided, expert-reviewed synthetic examples
+supervise observation-to-state, state--action-to-consequence, and
+state-to-action mappings. The learned components are composed at
+inference by supplying generated candidate consequences to Act.
+The benchmark supports component-level evaluation of state inference, consequence prediction, and action selection, together with full-pipeline evaluation (Full) of video-to-action decisions.
+
+On 509 Full test examples, consequence comparison achieves 63.65\% accuracy (324/509), versus 45.38\% (231/509) for direct decision output. This improves accuracy by 18.27 percentage points, a net increase of 93 correct decisions. Removing explicit evidence fields yields 27.70\% (141/509); withholding the Hold forecast yields 47.94\% (244/509). PIWM achieves 62.20\%, 74.43\%, and 89.80\% on See, Foresee, and Act, respectively.
+
+% Our main contributions are as follows:
+
+% \begin{enumerate}
+% \def\labelenumi{\arabic{enumi}.}
+% \tightlist
+% \item
+%   \textbf{A See--Foresee--Act framework for proactive retail
+%   assistance.} PIWM connects explicit observational evidence and
+%   AIDA--BDI state with one-step candidate-consequence prediction and
+%   comparative action selection.
+% \item
+%   \textbf{GuidanceSalesBench for component and full-pipeline
+%   evaluation.} The benchmark links sparse observations, inferred
+%   customer states, normative candidate outcomes, and preferred actions
+%   through synthetic supervision.
+% \item
+%   \textbf{An empirical analysis of consequence comparison, explicit
+%   evidence, and non-intervention prediction.} Accuracy-based comparisons
+%   quantify the contribution of using candidate forecasts, retaining
+%   explicit evidence fields, and predicting the consequence of Hold while
+%   keeping the action available.
+% \end{enumerate}
+
+Our main contributions are as follows:
+
+\begin{enumerate}
+\item
+  \textbf{A task formulation for proactive retail assistance.}
+  We study whether and how to intervene from sparse pre-interaction
+  observations, connecting observable evidence and inferred customer
+  states with action-conditioned normative outcomes at a single
+  decision point.
+
+\item
+  \textbf{GuidanceSalesBench for structured evaluation.}
+  We construct a benchmark linking sparse observations, customer
+  states, normative candidate outcomes, and preferred actions,
+  supporting both component-level and full-pipeline evaluation.
+
+\item
+  \textbf{A See--Foresee--Act framework instantiated as PIWM.}
+  The framework connects evidence-grounded state inference,
+  one-step candidate-consequence prediction, and comparative
+  action selection through common state and action interfaces.
+
+\item
+  \textbf{Empirical findings on evidence, consequence comparison,
+  and non-intervention.}
+  Controlled comparisons show how candidate forecasts, explicit
+  evidence fields, and the Hold forecast contribute to decision
+  accuracy on GuidanceSalesBench.
+\end{enumerate}
+
+\section{Related Work}\label{related-work}
+
+\subsection{Proactive assistance and intervention
+timing.}\label{proactive-assistance-and-intervention-timing.}
+
+Mixed-initiative interaction balances assistance benefits against
+uncertainty and interruption costs \citep{horvitz1999principles}.
+Proactive Agent studies human acceptance and rejection, LlamaPIE
+separates response timing from generation, and ProAssist evaluates
+streaming visual assistance
+\citep{lu2024proactive, chen2025llamapie, zhang2025proassist}.
+ContextAgent connects sensory and personal context to service initiation
+and tool use \citep{yang2026contextagent}; PRISM studies risk-sensitive,
+uncertainty-aware proactive deliberation \citep{fu2026prism}. These
+works motivate deciding whether assistance is warranted. PIWM focuses on
+a complementary question: how explicit retail evidence and
+candidate-specific forecasts inform a shared choice among five
+interventions, including Hold.
+
+ReAct and Reflexion combine reasoning, action, and feedback, while
+trajectory and process refinement improve behavior through exploration
+and supervision
+\citep{yao2023react, shinn2023reflexion, song-etal-2024-trial, xiong-etal-2024-watch, wang-etal-2025-steca}.
+PIWM evaluates a single decision point rather than an executed
+interaction trajectory. Its non-intervention control holds the candidate
+set and instruction fixed while removing only the Hold forecast,
+directly examining the value of anticipating silence in action
+comparison.
+
+\subsection{Intent modeling and structured
+state.}\label{intent-modeling-and-structured-state.}
+
+Partial-observation control distinguishes observable inputs from
+underlying state \citep{aastrom1965optimal}. Machine theory of mind
+models other agents from observed behavior
+\citep{rabinowitz2018machine}. AIDA describes purchasing stages and BDI
+organizes beliefs, desires, and intentions
+\citep{barry1987development, rao1995bdi}. VAGEN separates visual state
+estimation and transition modeling within multi-turn world-model
+reasoning \citep{wang2025vagen}. PIWM distinguishes two parts of the
+current representation: an inferred task state and explicit visible
+evidence. Its evidence-removal experiment tests whether the latter
+contributes beyond retaining stage, intent, and BDI, rather than
+treating state structure alone as sufficient for decisions.
+
+Interactive environments support evaluating actions through execution in
+household, scientific, and shopping tasks
+\citep{puig2018virtualhome, shridhar2020alfred, Wang2022ScienceWorld, yao2022webshop}.
+PIWM instead links state interpretations to candidate interventions at a
+single observation point. Its evaluation primarily measures agreement
+with a constructed schema, rather than behavioral validation of inferred
+mental states or successful interactive task completion.
+
+\subsection{World models and decision
+utility.}\label{world-models-and-decision-utility.}
+
+World models support prediction and control through learned transitions
+\citep{ha2018world, hafner2020dreamer, hafner2023mastering}. RAP couples
+a language-model world model with search, while other language-agent
+methods learn or construct planning models from experience and world
+knowledge
+\citep{hao-etal-2023-reasoning, xiang2024language, guan2023leveraging, qiao2024agent, wang-etal-2025-world, fang-etal-2025-webevolver}.
+PIWM learns normative one-step retail outcomes and uses them for
+explicit candidate comparison. Its question concerns the information
+needed for a proactive service decision, including the consequence of
+not intervening.
+
+Closed-loop evaluation links world-model predictions to downstream task
+performance \citep{zhang2025world}. We compare approaches along four
+dimensions: the information represented from observation, the
+supervision for candidate outcomes, the treatment of non-intervention,
+and the decision setting. PIWM combines explicit retail evidence with
+AIDA--BDI, learns candidate outcomes from synthetic normative
+supervision, predicts Hold through the same interface as active actions,
+and evaluates single-step decision accuracy. Its direct-decision and
+forecast-based conditions test the utility of this combination on the
+same Full set.
+
+\section{Method}\label{method}
+
+\subsection{Task definition and
+framework}\label{task-definition-and-framework}
+
+PIWM addresses service decisions before an explicit customer request.
+Given sparse pre-decision video observations \(o\) and a retail role
+description, the agent selects an action from candidates \(C\): Greet,
+Elicit, Inform, Recommend, or Hold. The inference pipeline first
+constructs a customer state, predicts a one-step consequence for each
+candidate, and then explicitly compares those consequences to select an
+action.
+
+The three interfaces are:
+
+\[
+(\hat z,\hat s)=\mathrm{See}_{\theta}(o),\quad \hat y^{(a)}=\mathrm{Foresee}_{\theta}(\hat z,\hat s,a),\quad \hat a=\mathrm{Act}_{\theta}\!\left(\hat z,\hat s,\{(a,\hat y^{(a)})\}_{a\in C}\right).
+\]
+
+Here \(\hat z\) summarizes observable evidence, \(\hat s\) represents
+the customer state, and \(\hat y^{(a)}\) describes the anticipated
+consequence of candidate \(a\).
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/piwm_2.png}
+% \begin{tikzpicture}[font=\small,box/.style={draw,rounded corners,align=center,text width=2.7cm,minimum height=1.05cm},>=Latex]
+% \node[box] (o) {Sparse frames $o_t$\\visual observations};
+% \node[box,right=0.55cm of o] (s) {\textbf{See}\\$\hat z_t,\hat s_t$};
+% \node[box,right=0.55cm of s] (a) {\textbf{Act}\\direct choice $\hat a_t$};
+% \node[box,below=0.7cm of s] (f) {\textbf{Foresee}\\candidate outcome};
+% \draw[->] (o)--(s);\draw[->] (s)--(a);\draw[->] (s)--node[left]{candidate $a$}(f);
+% \draw[->,dashed] (f.east)-|node[right,pos=.7,font=\footnotesize,align=left]{forecast\\selectors}(a.south);
+% \end{tikzpicture}
+\caption{See--Foresee--Act inference. See constructs a customer state from video; Foresee predicts one-step consequences for each candidate, including Hold; Act compares the candidate--consequence pairs to select an intervention. }\vspace{-15pt}
+\label{fig:pipeline}
+\end{figure}
+
+\subsection{See: role-oriented evidence and customer
+state}\label{see-role-oriented-evidence-and-customer-state}
+
+See represents the current observation through explicit evidence and
+inferred customer state. Four evidence fields,
+\texttt{visible\_evidence}, \texttt{engagement\_pattern},
+\texttt{gaze\_and\_attention}, and \texttt{body\_and\_hands}, describe
+visible scene and behavior, engagement and interaction, attention, and
+posture and hand movements. The retained state fields are
+\texttt{stage}, \texttt{intent\_label}, \texttt{belief},
+\texttt{desire}, and \texttt{intention}. AIDA describes task progress,
+while BDI organizes beliefs, desires, and intentions. The inferred
+fields can also encode information derived from visual observations.
+
+Consider a customer repeatedly comparing two products and inspecting
+their labels. A generic description records the movements; role-oriented
+reading organizes the comparison targets and information-seeking cues.
+The state representation expresses a possible need to understand product
+differences and provides a common starting point for evaluating
+interventions. This running example illustrates the interfaces rather
+than reporting an experimental prediction.
+
+\subsection{Foresee: one-step consequences of candidate
+actions}\label{foresee-one-step-consequences-of-candidate-actions}
+
+Foresee receives the current evidence, customer state, and one candidate
+action. It predicts the next AIDA--BDI state, anticipated benefits and
+risks, and a relative reward. Each candidate is evaluated from the same
+current state. Hold is evaluated alongside active interventions,
+allowing the model to compare the consequences of acting and remaining
+silent.
+
+In the running example, Elicit may clarify the comparison criteria,
+Inform may address a specific information gap, and an early Recommend
+may precede a clear understanding of preferences. Hold represents
+continued independent comparison. Foresee expresses these alternatives
+as candidate-specific next-state and benefit--risk descriptions for Act
+to compare. Field schemas and inference interfaces appear in Appendices~\ref{app:interfaces} and~\ref{app:implementation}.
+
+\subsection{Act: explicit consequence comparison and
+non-intervention}\label{act-explicit-consequence-comparison-and-non-intervention}
+
+Act receives current evidence and state together with the
+candidate--consequence pairs produced by Foresee. It compares how well
+each action addresses the inferred need, how it may advance the
+interaction, and what interruption risks it introduces, then generates a
+candidate label and a service realization. In the example, the choice
+between Elicit and Inform depends on whether the comparison need has
+become sufficiently specific; Hold remains available when independent
+exploration is appropriate.
+
+Non-intervention is an explicit decision alternative whose predicted
+consequence participates in the same comparison as service actions. This
+makes the decision concern both how to help and whether help is
+currently warranted. The implementation uses a single decision point and
+one-step candidate predictions.
+
+\subsection{Training and inference}\label{training-and-inference}
+
+PIWM parameterizes the three prediction tasks with a
+Qwen2.5-VL-7B-Instruct backbone and LoRA adaptation.
+Rather than training a monolithic video-to-action predictor, PIWM
+decomposes supervision according to the model-based decision process:
+current-state estimation, action-conditioned transition prediction, and
+comparative action selection.
+
+The central world-modeling objective is carried by \emph{Foresee}.
+Given the current structured representation and a candidate action,
+Foresee is supervised to predict the corresponding one-step customer
+state together with its anticipated benefit and risk. Training on these
+state--action--outcome tuples therefore teaches PIWM an
+action-conditioned transition model over the structured customer state,
+rather than only a direct policy from observations to actions.
+\emph{See} provides the grounded current-state estimate on which these
+transitions are conditioned, while \emph{Act} learns to select among
+candidate actions using their predicted outcomes.
+
+At inference time, the learned components are composed without access
+to annotated states or consequences. See first constructs the current
+representation from the sparse video. Foresee then evaluates each
+candidate action from this shared current state, including \textsc{Hold},
+and generates its predicted one-step outcome. Act finally compares the
+resulting candidate--outcome pairs and selects the intervention.
+This composition turns the learned transition model into an explicit
+model-based decision procedure: actions are selected according to their
+predicted consequences rather than from the current state alone.
+
+
+\section{GuidanceSalesBench}\label{guidancesalesbench}
+
+\subsection{Construction and
+supervision}\label{construction-and-supervision}
+
+Construction proceeds through four linked stages. \textbf{Knowledge
+distillation} extracts 27 compact principles and 78 source-linked
+conditional rules from retail and consumer-behavior material; these
+counts describe an internal rule ledger, not independently established
+laws. \textbf{Scenario specification} instantiates product context,
+viewpoint, visible cues, and AIDA--BDI fields in a scene manifest.
+\textbf{Candidate annotation} pairs a parent state with alternative
+service realizations and LLM-assisted, rule-guided consequence targets,
+followed by the expert review described in the construction records.
+\textbf{Task export} turns the same parent material into video-to-state
+See records, state--action-to-consequence Foresee records, best-action
+Act records, and predicted-state evaluation inputs.
+
+
+\begin{table}[tbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}lrX@{}}
+\toprule
+Data resource & Records & Purpose \\
+\midrule
+See & 1,043 & Multimodal observation representation \\
+Foresee & 2,001 & Future-state prediction \\
+Act & 680 & Decisions from textual states \\
+Full & 3,054 & Multimodal-input-to-decision training data \\
+Real & 418 & Sales-expert-annotated real-store scenes; evaluation only \\
+\bottomrule
+\end{tabularx}
+\caption{Task-specific data resources. Full is split into 3,054 training, 509 validation, and 509 test examples. Real is excluded from training.}
+\label{tab:results-2}
+\end{table}
+
+\subsection{Dataset composition and splits}
+\label{dataset-composition}
+
+\textsc{GuidanceSalesBench} contains task-specific resources for
+state estimation, future-state prediction, and action selection,
+together with an end-to-end multimodal collection.
+Table~\ref{tab:results-2} summarizes the corresponding data
+resources.
+
+The component resources use different supervision units.
+See contains 1,043 multimodal observation records, Foresee contains
+2,001 state--action records, and Act contains 680 textual-state
+decision records. Because these resources are task-specific exports,
+their record counts should not be interpreted as counts of independent
+scenes or summed with the Full collection.
+
+A separate Real set contains 418 sales-expert-annotated real-store
+records. These examples are excluded from training and reserved for
+evaluation.
+
+\subsection{A complete annotation
+example}\label{a-complete-annotation-example}
+
+Figure~\ref{fig:guidancesalesbench-sample} illustrates a complete GuidanceSalesBench example across the four supervision layers. The sparse video frames show a customer remaining near the terminal, shifting gaze across display regions, and leaning slightly forward, without making an explicit request.
+
+See records these observable cues and infers an AIDA \textit{Interest} state, together with the belief that relevant options may exist, the desire to compare before choosing, and the intention to explore available options. These inferred fields are task interpretations rather than directly observed facts.
+
+Given this state, Foresee associates each candidate action with a normative consequence target. Elicit is annotated as clarifying the customer's comparison need with mild interruption risk; Inform may reduce basic uncertainty but can remain generic; Recommend may narrow the search but risks premature preference pressure; and Hold preserves independent exploration while leaving uncertainty unresolved. The preferred action is therefore Elicit.
+
+The example illustrates how a single parent observation is transformed into observable evidence, an inferred customer state, candidate-specific consequence targets, and a gold best-action label. The consequence targets are normative annotations rather than outcomes observed after real interventions.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/3-v2.png}
+\caption{A complete \textsc{GuidanceSalesBench} sample. Observed video evidence supports \emph{See}; the AIDA--BDI state is an inferred interpretation; each candidate action is paired with an expert- and rule-supported normative consequence target for \emph{Foresee}; and the gold best-action label supplies \emph{Act} supervision.}
+\label{fig:guidancesalesbench-sample}
+\end{figure*}
+
+
+\section{Experiments}\label{experiments}
+
+\subsection{Experimental setup}\label{experimental-setup}
+
+We evaluate PIWM at both the component and end-to-end levels.
+The component evaluations isolate the three structured prediction tasks
+defined in Section~\ref{method}. \emph{See} is evaluated on 209
+held-out examples and is counted as correct only when both the predicted
+AIDA stage and intent label match the reference annotation.
+\emph{Foresee} evaluates action-conditioned next-state prediction on
+309 state--action records, using next-AIDA-stage accuracy over four
+classes. \emph{Act} evaluates intervention selection on 245 examples
+where the reference customer state is provided.
+
+The \emph{Full} evaluation measures the complete video-to-action
+pipeline on the 509-example held-out test split described in
+Section~\ref{dataset-composition}. Unlike the component evaluations,
+Full begins from sparse visual observations: See first predicts the
+current customer representation, Foresee generates candidate-specific
+outcomes when enabled, and Act produces the final intervention.
+Consequently, Full captures the effect of composing the learned
+components rather than evaluating any one prediction task in isolation.
+Invalid or missing predictions are counted as errors.
+
+For all tasks, we report accuracy:
+\[
+\mathrm{Accuracy}
+=
+\frac{1}{N}
+\sum_{i=1}^{N}
+\mathbf{1}[\hat y_i=y_i^\star].
+\]
+The theoretical random baselines follow the corresponding label spaces:
+3.13\% for the joint four-stage/eight-intent See target, 25.00\% for
+the four-class Foresee target, and 20.00\% for the five-action Act and
+Full decisions.
+
+
+\subsection{Overall performance}\label{overall-performance}
+
+\begin{table}[tbp]
+\centering\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}Xrrrr@{}}
+\toprule
+Model & See (209) & Foresee (309) & Act (245) & Full (509) \\
+\midrule
+Random Baseline & 3.13 & 25.00 & 20.00 & 20.00 \\
+Qwen2.5-VL-7B & 43.54 & 9.39 & 13.47 & 24.75 \\
+Gemini 2.5 Flash & --- & --- & --- & \textbf{69.74} \\
+GPT-4o & --- & --- & --- & 68.96 \\
+PIWM (direct decision) &
+\textbf{62.20} & \textbf{74.43} & \textbf{89.80} & 45.38 \\
+PIWM (counterfactual) &
+\textbf{62.20} & \textbf{74.43} & \textbf{89.80} & 63.65 \\
+\bottomrule
+\end{tabularx}
+\caption{Component and full-pipeline accuracy (\%). The two PIWM
+settings share the same See, Foresee, and Act evaluations and differ
+only in Full inference: direct decision selects from the predicted
+current representation without using Foresee outputs, whereas the
+counterfactual setting supplies predicted candidate consequences to
+Act. Bold indicates the highest reported score in each column.}
+\label{tab:results-4}
+\end{table}
+
+PIWM improves substantially over the untuned Qwen2.5-VL-7B backbone on
+all three component tasks. See increases from 43.54\% (91/209) to
+62.20\% (130/209), indicating that the adapted model more reliably
+recovers the joint AIDA-stage and intent representation from sparse
+visual observations. Foresee increases from 9.39\% (29/309) to
+74.43\% (230/309). This task directly evaluates the
+state--action-conditioned next-state prediction used by the
+world-modeling component of PIWM. Act reaches 89.80\% (220/245),
+compared with 13.47\% (33/245) for the base model, when the structured
+current state is provided.
+
+The end-to-end Full evaluation tests whether these learned components
+remain useful when composed from video input. Qwen2.5-VL-7B obtains
+24.75\% accuracy (126/509). PIWM reaches 45.38\% (231/509) when Act
+selects directly from the predicted current representation without
+receiving explicit candidate forecasts. When Foresee predictions for
+the candidate actions are supplied to Act, accuracy rises to 63.65\%
+(324/509), corresponding to 93 additional correct decisions and an
+improvement of 18.27 percentage points. GPT-4o and Gemini 2.5 Flash achieve 68.96\% (351/509) and 69.74\%
+(355/509), respectively, on Full.
+
+
+\subsection{Ablation analysis}\label{ablation-analysis}
+
+We further examine three design choices in the composed pipeline:
+explicit comparison of candidate consequences, retention of observable
+evidence alongside the inferred customer state, and explicit prediction
+of the consequence of non-intervention. All ablations use the same
+509-example Full test set and preserve the five-action decision space.
+Table~\ref{tab:results-5} summarizes the results.
+
+\begin{table}[tbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{
+@{}
+>{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.46}}
+>{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.17}}
+>{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.17}}
+>{\raggedright\arraybackslash}p{(\linewidth - 6\tabcolsep) * \real{0.2}}
+@{}}
+\toprule\noalign{}
+Inference setting &
+Correct / total &
+Decision accuracy &
+Difference from full pipeline \\
+\midrule\noalign{}
+Predicted state + Foresee + Act &
+324 / 509 & 63.65\% & --- \\
+Predicted state $\rightarrow$ Act directly &
+231 / 509 & 45.38\% & $-18.27$ pp \\
+Without explicit evidence fields &
+141 / 509 & 27.70\% & $-35.95$ pp \\
+Hold forecast unavailable &
+244 / 509 & 47.94\% & $-15.72$ pp \\
+\bottomrule
+\end{tabular}
+\caption{Ablations on the 509-example Full test set. Differences are
+measured against the complete predicted-state + Foresee + Act pipeline.}
+\label{tab:results-5}
+\vspace{-15pt}
+\end{table}
+
+\paragraph{Consequence comparison.}
+The complete pipeline predicts the current customer representation,
+generates one-step consequences for the five candidate actions, and
+passes the resulting candidate--consequence pairs to Act. The
+direct-decision condition removes these forecasts and instead asks Act
+to select an intervention directly from the predicted current state.
+Accuracy decreases from 63.65\% to 45.38\%, a drop of 18.27 percentage
+points and 93 correct decisions. Because the underlying PIWM components
+and final action space are unchanged, this comparison isolates the
+decision-time contribution of explicitly using action-conditioned
+forecasts. The result supports the central premise of See--Foresee--Act:
+predicting future states is useful when those predictions participate
+in the final action comparison.
+
+\paragraph{Explicit evidence.}
+The evidence ablation removes
+\texttt{visible\_evidence},
+\texttt{engagement\_pattern},
+\texttt{gaze\_and\_attention}, and
+\texttt{body\_and\_hands} from the predicted current representation,
+while retaining \texttt{stage}, \texttt{intent\_label},
+\texttt{belief}, \texttt{desire}, and \texttt{intention}.
+Foresee then regenerates all candidate consequences from this reduced
+representation before Act performs the final comparison. Accuracy falls
+to 27.70\% (141/509), 35.95 percentage points below the full pipeline
+and 183 fewer correct decisions.
+
+This ablation therefore measures the end-to-end contribution of
+preserving explicit observable evidence rather than only whether Act
+uses several additional text fields. The retained intent and BDI fields
+may still contain information inferred from the visual input, so the
+comparison does not remove all visually derived information. Instead,
+it isolates the additional value of retaining explicit descriptions of
+gaze, engagement, posture, and object interaction alongside the
+structured customer state.
+
+\paragraph{Non-intervention forecast.}
+The Hold ablation retains all five candidate actions---Greet, Elicit,
+Inform, Recommend, and Hold---together with the full predicted current
+state and the explicit instruction that non-intervention is a valid
+choice. The Hold forecast is withheld from Act, while forecasts for
+the four active interventions remain available.
+
+With the Hold forecast withheld, accuracy decreases to 47.94\%
+(244/509), a drop of 15.72 percentage points and 80 correct decisions.
+Because Hold remains selectable under both conditions, the comparison
+distinguishes access to an anticipated outcome for waiting from merely
+including Hold in the candidate set. Within the evaluated pipeline,
+explicitly modeling the expected consequence of non-intervention
+provides useful information for candidate comparison.
+
+
+\section{Discussion: extending single-step decisions over
+time}\label{discussion-extending-single-step-decisions-over-time}
+
+PIWM connects task-oriented observation, one-step consequence
+prediction, and explicit action comparison. Extending this formulation
+to sustained interaction calls for tracking how new observations revise
+customer state and how an earlier intervention changes later
+opportunities. Multi-step trajectories and the value of waiting are
+natural directions for extending the current single-decision framework.
+
+ \vspace{-10pt}
+
+\section{Limitations and Next Validation
+Steps}\label{limitations-and-next-validation-steps}
+
+The experiments study single-decision prediction and selection on a
+509-example Full test set with synthetic, normative
+supervision. The evidence ablation changes both Foresee and Act inputs
+and regenerates forecasts, measuring their combined response to explicit
+evidence removal. The Hold control measures the effect of a missing Hold
+forecast while retaining the action and non-intervention instruction.
+These results characterize decision accuracy within the evaluated
+framework; longer interactions and customer outcomes require other
+evaluation settings.
+
+Future work can examine generalization across source scenes and
+real-store interactions, and trace how state estimates and candidate
+forecasts affect individual decisions. These extensions connect the
+current single-step evaluation to sustained proactive assistance.
+
+\section{Conclusion}\label{conclusion}
+
+PIWM organizes proactive retail assistance through role-oriented state
+construction, one-step consequence prediction, and explicit action
+comparison. On the 509-example Full test set, consequence-based selection achieved 63.65\%
+accuracy, compared with 45.38\% for direct decision output. Removing
+explicit evidence fields reduced accuracy to 27.70\%; withholding only
+the Hold forecast reduced it to 47.94\%. Together, these results support
+preserving observable evidence and explicitly comparing the anticipated
+consequences of intervention and non-intervention.
+
+\section{AI Use Statement}\label{ai-use-statement}
+
+Generative models were used in constructing synthetic data and normative
+annotations. AI assistance was also used for literature discovery,
+manuscript restructuring and drafting, interpretation of archived
+experimental reports, and suggestions for additional experiments. 
+
+\section{Ethics Statement}\label{ethics-statement}
+
+Retail observations can expose personal behavior, and inferred intent
+may be wrong. The real-store material in this study is staged; this work
+does not evaluate covert deployment. Assistance should preserve the
+option to decline and should not infer sensitive characteristics from
+appearance. Data release requires verified consent and media rights.
+Neither conformity to a sales-stage label nor an increase in inferred
+purchase intention is a substitute for user welfare. The present
+experiments do not establish customer benefit or deployment safety.
+
+\section{Reproducibility Statement}\label{reproducibility-statement}
+
+Appendix~\ref{app:data} describes the current resources and Full partition.
+Appendices~\ref{app:interfaces} and~\ref{app:implementation} specify the
+structured interfaces and inference controls.
+Appendix~\ref{app:evaluation} gives task-specific scoring definitions and
+correct counts. Appendix~\ref{app:reproduction} describes the Real
+evaluation coverage and anonymous-material version.
+
+\bibliography{references_iclr}
+\bibliographystyle{iclr2027_conference}
+\clearpage
+\appendix
+\input{appendix_arxiv}
+\end{document}

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="PIWM is a See–Foresee–Act framework for consequence-aware proactive retail assistance.">
+  <meta name="keywords" content="PIWM, proactive assistance, world model, intent modeling, retail assistance, AIDA, BDI">
+  <meta name="citation_title" content="See, Foresee, Act: Intent-Aware World Modeling for Proactive Retail Assistance">
+  <meta name="citation_author" content="Honghui Zhang">
+  <meta name="citation_author" content="Anna Min">
+  <meta name="citation_author" content="Chenmeinian Guo">
+  <meta name="citation_author" content="Yujia Zhang">
+  <meta name="citation_author" content="Zezhou Zhang">
+  <meta name="citation_author" content="Yichen Yu">
+  <meta name="citation_author" content="Guanyu Liu">
+  <meta name="citation_author" content="Yongming Qin">
+  <meta name="citation_author" content="Chongguo Song">
+  <meta name="citation_author" content="Mengyue Yang">
+  <meta name="citation_author" content="Lei Yu">
+  <meta name="citation_author" content="Tianyu Shi">
+  <meta name="citation_publication_date" content="2026">
+  <meta name="citation_arxiv_id" content="2606.03371">
+  <meta name="citation_pdf_url" content="https://arxiv.org/pdf/2606.03371">
+  <title>PIWM — See, Foresee, Act</title>
+  <link rel="stylesheet" href="assets/css/site.css">
+  <link rel="stylesheet" href="assets/css/fixes.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <nav class="nav" aria-label="Primary navigation">
+    <a class="brand" href="#top" aria-label="PIWM home"><span class="brand-mark">P</span> PIWM</a>
+    <div class="nav-links">
+      <a href="#overview">Overview</a><a href="#method">Method</a><a href="#demo">Demo</a><a href="#results">Results</a><a href="#citation">Citation</a>
+    </div>
+    <button class="menu-button" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="hero-glow hero-glow-one"></div><div class="hero-glow hero-glow-two"></div>
+    <div class="wrap hero-inner">
+      <div class="paper-kicker"><span></span> Proactive intent world modeling · 2026</div>
+      <h1><span>See, Foresee, Act:</span><br>Intent-Aware World Modeling for Proactive Retail Assistance</h1>
+      <p class="hero-deck">Before help is requested, an assistant must understand what it sees, anticipate what each intervention could change, and decide whether acting—or waiting—is best.</p>
+      <div class="authors" id="authors"></div>
+      <div class="affiliation">Meetvista Research Team</div>
+      <div class="hero-actions" id="paper-links"></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="teaser-section">
+      <div class="wrap">
+        <figure class="figure-card reveal">
+          <img src="assets/images/direct-vs-piwm.png" alt="Comparison between direct action selection and the See–Foresee–Act PIWM pipeline">
+          <figcaption><strong>From reflex to deliberation.</strong> PIWM makes the decision path inspectable: preserve observable evidence, forecast one-step outcomes for every candidate—including Hold—and compare before acting.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section soft" id="overview">
+      <div class="wrap narrow">
+        <div class="section-label">Overview</div>
+        <h2>Helping before the customer asks—without interrupting too soon.</h2>
+        <p class="lead">A customer comparing products, inspecting labels, or revisiting the same display may need assistance—or may simply prefer to explore independently. PIWM frames proactive retail assistance as a consequence-aware decision under incomplete observation.</p>
+        <div class="metric-grid">
+          <div class="metric"><strong>63.65%</strong><span>Full decision accuracy with candidate-consequence comparison</span></div>
+          <div class="metric"><strong>+18.27 pp</strong><span>over direct decision output on the same 509 examples</span></div>
+          <div class="metric"><strong>5 actions</strong><span>Greet · Elicit · Inform · Recommend · Hold</span></div>
+          <div class="metric"><strong>1 step</strong><span>single-decision, action-conditioned outcome modeling</span></div>
+        </div>
+      </div>
+      <div class="wrap overview-figure reveal">
+        <figure class="figure-card edge">
+          <img src="assets/images/overview.png" alt="PIWM motivation and task scope, showing observation, intent inference, candidate outcomes, and action comparison">
+          <figcaption>The intent world separates visible evidence from an inferred AIDA–BDI interpretation. The interaction world evaluates the same current state under each service action.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section" id="method">
+      <div class="wrap">
+        <div class="section-label">Method</div>
+        <h2>The See–Foresee–Act pipeline</h2>
+        <p class="section-intro">A shared Qwen2.5-VL-7B-Instruct backbone with LoRA adaptation supports three structured tasks. The central world-modeling step is Foresee: an action-conditioned transition model over the customer state.</p>
+        <div class="stage-grid">
+          <article class="stage see"><div class="stage-index">01</div><div class="stage-icon" aria-hidden="true">◉</div><h3>See</h3><p>Translate sparse pre-decision video into explicit behavioral evidence plus an AIDA stage and BDI fields for belief, desire, and intention.</p><span>Observation → state</span></article>
+          <article class="stage foresee"><div class="stage-index">02</div><div class="stage-icon" aria-hidden="true">◎</div><h3>Foresee</h3><p>From the same current state, predict a one-step normative outcome, benefit, risk, and relative reward for each candidate action.</p><span>State + action → consequence</span></article>
+          <article class="stage act"><div class="stage-index">03</div><div class="stage-icon" aria-hidden="true">✓</div><h3>Act</h3><p>Compare candidate–consequence pairs, balancing inferred need, expected benefit, interruption risk, and the option to remain silent.</p><span>Consequences → decision</span></article>
+        </div>
+        <figure class="figure-card reveal method-figure">
+          <img src="assets/images/pipeline.png" alt="PIWM diagram contrasting direct selection and forecast-based candidate comparison">
+          <figcaption>At inference time, See supplies the predicted current representation; Foresee evaluates candidates independently; Act selects using the resulting forecasts. The paper evaluates a single decision point, not long-horizon control.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="section demo-section" id="demo">
+      <div class="wrap">
+        <div class="section-label light">Paper-grounded walkthrough</div>
+        <h2>Inspect one decision, candidate by candidate.</h2>
+        <p class="section-intro light-text">This interactive view reconstructs GuidanceSalesBench Annotated Example 152. It is a visualization of documented annotations—not live model inference and not observed intervention effects.</p>
+        <div class="demo-shell reveal">
+          <div class="demo-header"><div><span class="live-dot"></span> Annotated Example 152</div><span>Normative target · not model output</span></div>
+          <div class="demo-grid">
+            <div class="observation-panel">
+              <div class="panel-tag teal">See · observation</div>
+              <div class="frame-strip">
+                <button class="frame active" data-frame="0"><img src="assets/images/example-t8.png" alt="Customer at a retail terminal, eight seconds before decision"><span>t − 8 s</span></button>
+                <button class="frame" data-frame="1"><img src="assets/images/example-t4.png" alt="Customer at a retail terminal, four seconds before decision"><span>t − 4 s</span></button>
+                <button class="frame" data-frame="2"><img src="assets/images/example-t0.png" alt="Customer at a retail terminal at decision time"><span>t</span></button>
+              </div>
+              <p class="frame-caption" id="frame-caption">Remains near the machine.</p>
+              <div class="state-card">
+                <div><span>AIDA stage</span><strong>Interest</strong></div><div><span>Belief</span><strong>Relevant options may exist</strong></div><div><span>Desire</span><strong>Compare before choosing</strong></div><div><span>Intention</span><strong>Explore options</strong></div>
+              </div>
+              <p class="caveat">Plausible task interpretation; not a directly observed fact.</p>
+            </div>
+            <div class="consequence-panel">
+              <div class="panel-tag violet">Foresee · compare candidates</div>
+              <div class="action-tabs" role="tablist" aria-label="Candidate actions"></div>
+              <div class="consequence-card" aria-live="polite">
+                <div class="candidate-top"><span id="candidate-name">Elicit</span><span id="candidate-status">Gold action</span></div>
+                <div class="consequence-main"><span>Expected change</span><strong id="candidate-change">Interest / need focus clearer</strong></div>
+                <div class="consequence-details"><div><span>Benefit</span><strong id="candidate-benefit">Clarify comparison need</strong></div><div><span>Risk</span><strong id="candidate-risk">Mild interruption</strong></div></div>
+              </div>
+              <div class="act-decision"><span>Act · documented best-action label</span><strong>ELICIT</strong><p>Compare all five candidate targets, then choose the action annotated as best for this example.</p></div>
+            </div>
+          </div>
+          <div class="demo-note"><strong>Important:</strong> The targets are expert- and rule-supported normative annotations. This interaction does not claim precomputed PIWM predictions or simulate a real intervention.</div>
+        </div>
+        <details class="source-figure"><summary>View the original paper figure</summary><img src="assets/images/annotated-example.png" alt="Full annotated example figure from the paper"></details>
+      </div>
+    </section>
+
+    <section class="section soft" id="results">
+      <div class="wrap">
+        <div class="section-label">Experimental results</div>
+        <h2>Explicit forecasts improve PIWM’s final decision.</h2>
+        <p class="section-intro">All values below are copied from the public paper source. Full evaluation begins with sparse video and contains 509 held-out examples.</p>
+        <div class="result-tabs" role="tablist" aria-label="Result tables">
+          <button class="result-tab active" data-result="full" role="tab">Full pipeline</button><button class="result-tab" data-result="components" role="tab">Components</button><button class="result-tab" data-result="ablations" role="tab">Ablations</button>
+        </div>
+        <div class="result-card" id="result-content"></div>
+        <div class="comparison-callout">
+          <div><span>Direct decision</span><strong>45.38%</strong><div class="bar"><i style="--value:45.38%"></i></div></div>
+          <div class="versus">+93<br><small>correct decisions</small></div>
+          <div class="emphasis"><span>Consequence comparison</span><strong>63.65%</strong><div class="bar"><i style="--value:63.65%"></i></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="citation">
+      <div class="wrap narrow">
+        <div class="section-label">Citation</div><h2>BibTeX</h2>
+        <p class="section-intro">If you find PIWM useful in your research, please consider citing our work.</p>
+        <div class="bib-wrap"><button class="copy-button" type="button">Copy BibTeX</button><pre id="bibtex">@misc{zhang2026piwm,
+  title  = {See, Foresee, Act: Intent-Aware World Modeling for Proactive Retail Assistance},
+  author = {Zhang, Honghui and Min, Anna and Guo, Chenmeinian and Zhang, Yujia and Zhang, Zezhou and Yu, Yichen and Liu, Guanyu and Qin, Yongming and Song, Chongguo and Yang, Mengyue and Yu, Lei and Shi, Tianyu},
+  year         = {2026},
+  eprint       = {2606.03371},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CL},
+  doi          = {10.48550/arXiv.2606.03371}
+}</pre></div>
+      </div>
+    </section>
+  </main>
+
+  <footer><div class="wrap"><strong>PIWM</strong><p>Research project page for “See, Foresee, Act.” Scientific content and figures are from the supplied paper materials.</p><p class="attribution">Design informed by <a href="https://interactwm.github.io/ActWorld/">ActWorld</a>. Page structure adapted from the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a> (CC BY-SA 4.0).</p></div></footer>
+  <button class="to-top" type="button" aria-label="Back to top">↑</button>
+  <script src="assets/js/config.js"></script><script src="assets/js/site.js"></script>
+</body>
+</html>
