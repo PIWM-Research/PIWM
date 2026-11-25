@@ -24,16 +24,22 @@
   <title>PIWM — See, Foresee, Act</title>
   <link rel="stylesheet" href="assets/css/site.css">
   <link rel="stylesheet" href="assets/css/fixes.css">
+  <link rel="stylesheet" href="assets/css/research.css">
 </head>
-<body>
+<body class="research-page project-piwm">
   <a class="skip-link" href="#main">Skip to content</a>
-  <nav class="nav" aria-label="Primary navigation">
-    <a class="brand" href="#top" aria-label="PIWM home"><span class="brand-mark">P</span> PIWM</a>
-    <div class="nav-links">
-      <a href="#overview">Overview</a><a href="#method">Method</a><a href="#demo">Demo</a><a href="#results">Results</a><a href="#citation">Citation</a>
-    </div>
-    <button class="menu-button" type="button" aria-expanded="false" aria-label="Open navigation">Menu</button>
-  </nav>
+  <header class="research-header">
+    <nav class="research-nav" aria-label="Primary navigation">
+      <div class="project-switch" role="group" aria-label="Research projects">
+        <a href="#top" aria-current="page">PIWM</a>
+        <a href="rosa/index.html">ROSA</a>
+      </div>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="navLinks">Sections</button>
+      <div class="nav-links" id="navLinks">
+        <a href="#overview">Overview</a><a href="#method">Method</a><a href="#demo">Demo</a><a href="#results">Results</a><a href="#citation">Citation</a>
+      </div>
+    </nav>
+  </header>
 
   <header class="hero" id="top">
     <div class="hero-glow hero-glow-one"></div><div class="hero-glow hero-glow-two"></div>
@@ -149,6 +155,15 @@
       </div>
     </section>
 
+    <section class="section soft" id="related">
+      <div class="wrap narrow">
+        <div class="section-label">Related project · internal preview</div>
+        <h2>ROSA</h2>
+        <p class="section-intro">ROSA models customer state from observation sequences and studies how verifier feedback improves service selection and action-conditioned outcome prediction.</p>
+        <div class="hero-actions"><a class="button primary" href="rosa/index.html">Explore ROSA</a></div>
+      </div>
+    </section>
+
     <section class="section" id="citation">
       <div class="wrap narrow">
         <div class="section-label">Citation</div><h2>BibTeX</h2>
@@ -166,7 +181,13 @@
     </section>
   </main>
 
-  <footer><div class="wrap"><strong>PIWM</strong><p>Research project page for “See, Foresee, Act.” Scientific content and figures are from the supplied paper materials.</p><p class="attribution">Design informed by <a href="https://interactwm.github.io/ActWorld/">ActWorld</a>. Page structure adapted from the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a> (CC BY-SA 4.0).</p></div></footer>
+  <footer class="research-footer">
+    <div class="research-footer-inner">
+      <div><strong>PIWM</strong><p>Research project page for “See, Foresee, Act.”</p></div>
+      <a class="button light" href="rosa/index.html">Explore ROSA</a>
+      <p class="attribution">Design informed by <a href="https://interactwm.github.io/ActWorld/">ActWorld</a>. Page structure adapted from the <a href="https://github.com/eliahuhorwitz/Academic-project-page-template">Academic Project Page Template</a> (CC BY-SA 4.0).</p>
+    </div>
+  </footer>
   <button class="to-top" type="button" aria-label="Back to top">↑</button>
   <script src="assets/js/config.js"></script><script src="assets/js/site.js"></script>
 </body>

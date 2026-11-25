@@ -1,0 +1,215 @@
+.research-page {
+  --research-ink: #16233a;
+  --research-muted: #526177;
+  --research-line: #dfe5ee;
+  --research-surface: #f6f8fb;
+  --research-heading: Georgia, "Times New Roman", serif;
+  --research-accent: #4538b2;
+  --research-tint: #efedff;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.research-page.project-rosa {
+  --research-accent: #1d5b48;
+  --research-tint: #e9f4ee;
+}
+
+.research-page h1,
+.research-page h2 {
+  font-family: var(--research-heading);
+  font-weight: 500;
+  letter-spacing: -.035em;
+}
+
+.research-page .hero h1 {
+  letter-spacing: -.045em;
+}
+
+.research-page.project-rosa .hero h1.paper-title {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+}
+
+.research-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--research-line);
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(16px);
+}
+
+.research-nav,
+.research-footer-inner {
+  width: min(1120px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.research-nav {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.project-switch {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--research-line);
+  border-radius: 999px;
+  background: var(--research-surface);
+}
+
+.project-switch a {
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: var(--research-muted);
+  font-size: .875rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.project-switch a:hover,
+.project-switch a[aria-current="page"] {
+  background: var(--research-tint);
+  color: var(--research-accent);
+}
+
+.research-nav .nav-links {
+  position: static;
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: clamp(12px, 2.4vw, 28px);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.research-nav .nav-links a {
+  padding: 0;
+  color: var(--research-muted);
+  font-size: .875rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.research-nav .nav-links a:hover {
+  color: var(--research-accent);
+}
+
+.research-nav .menu-button {
+  display: none;
+  cursor: pointer;
+  color: var(--research-ink);
+  border: 1px solid var(--research-line);
+  border-radius: 999px;
+  background: #fff;
+  padding: 7px 13px;
+  font-size: .875rem;
+}
+
+.research-page .button {
+  min-height: 44px;
+  padding: 9px 17px;
+  border-radius: 999px;
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.research-page .button.primary {
+  border-color: var(--research-accent);
+  background: var(--research-accent);
+  color: #fff;
+}
+
+.research-page .button.light {
+  border-color: var(--research-line);
+  background: #fff;
+  color: var(--research-ink);
+}
+
+.research-page .button.light:hover {
+  border-color: var(--research-accent);
+  color: var(--research-accent);
+}
+
+.research-page :is(.project-switch a, .nav-links a, .menu-button, .button):focus-visible {
+  outline: 2px solid var(--research-accent);
+  outline-offset: 3px;
+}
+
+.research-page .research-footer {
+  border-top: 1px solid var(--research-line);
+  background: var(--research-surface);
+  padding: 30px 0;
+  text-align: left;
+  color: var(--research-muted);
+}
+
+.research-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.research-footer-inner strong {
+  color: var(--research-ink);
+  font-size: 1rem;
+}
+
+.research-footer-inner p {
+  margin: 4px 0 0;
+  font-size: .875rem;
+}
+
+.research-footer-inner .attribution {
+  flex-basis: 100%;
+  max-width: none;
+  padding-top: 12px;
+  border-top: 1px solid var(--research-line);
+  font-size: .8rem;
+}
+
+.research-footer-inner .attribution a {
+  color: var(--research-accent);
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .research-nav,
+  .research-footer-inner {
+    width: calc(100% - 32px);
+  }
+
+  .research-nav .menu-button {
+    display: inline-flex;
+  }
+
+  .research-nav .nav-links {
+    position: absolute;
+    inset: 100% 0 auto;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 6px 16px 12px;
+    border-bottom: 1px solid var(--research-line);
+    background: #fff;
+    box-shadow: 0 14px 20px rgba(22, 35, 58, .09);
+  }
+
+  .research-nav .nav-links.open {
+    display: flex;
+  }
+
+  .research-nav .nav-links a {
+    padding: 9px 4px;
+  }
+}
