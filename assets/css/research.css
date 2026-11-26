@@ -1,9 +1,11 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap");
+
 .research-page {
   --research-ink: #16233a;
   --research-muted: #526177;
   --research-line: #dfe5ee;
   --research-surface: #f6f8fb;
-  --research-heading: Georgia, "Times New Roman", serif;
+  --research-heading: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
   --research-accent: #4538b2;
   --research-tint: #efedff;
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -17,12 +19,39 @@
 .research-page h1,
 .research-page h2 {
   font-family: var(--research-heading);
-  font-weight: 500;
-  letter-spacing: -.035em;
+  font-weight: 700;
+  letter-spacing: -.03em;
 }
 
 .research-page .hero h1 {
-  letter-spacing: -.045em;
+  letter-spacing: -.035em;
+}
+
+.research-page.project-piwm .hero {
+  padding: clamp(32px, 5vw, 60px) 0 25px;
+  border-bottom: 0;
+  background: linear-gradient(180deg, #eef4ff 0%, #f8faff 58%, #fff 100%);
+}
+
+.research-page.project-piwm .hero h1 {
+  max-width: 950px;
+  margin: 0 auto 18px;
+  color: var(--research-ink);
+  font-size: clamp(1.9rem, 4.5vw, 3.25rem);
+  line-height: 1.13;
+  text-wrap: balance;
+}
+
+.project-piwm .hero .authors {
+  margin-top: 0;
+}
+
+.project-piwm .hero .hero-actions {
+  margin-top: 20px;
+}
+
+.research-page.project-piwm .teaser-section {
+  padding-top: 4px;
 }
 
 .research-page.project-rosa .hero h1.paper-title {
