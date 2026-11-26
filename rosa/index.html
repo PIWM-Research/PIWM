@@ -244,6 +244,9 @@
       .feedback-strip { grid-template-columns: auto 1fr; }
       .feedback-loop { display: none; }
       .video-caption { flex-direction: column; }
+      .retailvid-controls { align-items: flex-start; flex-wrap: wrap; }
+      .retailvid-count { margin-left: 0; }
+      .retailvid-frames { grid-template-columns: repeat(2, 1fr); }
       .case-card { padding: 16px; }
       .footer-row { flex-direction: column; }
       .footer-mark { text-align: left; }
@@ -262,6 +265,17 @@
     .retailvid-demo dl > div { padding: 12px 0; border-top: 1px solid rgba(255,255,255,.15); }
     .retailvid-demo dt { color: var(--lime); font-size: .875rem; font-weight: 750; }
     .retailvid-demo dd { margin: 3px 0 0; color: #e3ece6; }
+    .retailvid-controls { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; }
+    .retailvid-controls label { color: #b9c9bf; font-size: .75rem; font-weight: 750; }
+    .retailvid-controls select { max-width: 100%; border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 8px 34px 8px 12px; background: #17382d; color: #f5f7f1; font: inherit; font-size: .78rem; }
+    .retailvid-controls select:disabled, .retailvid-demo .case-steps button:disabled { opacity: .55; cursor: not-allowed; }
+    .retailvid-count { margin-left: auto; color: #99aea1; font-size: .72rem; }
+    .retailvid-demo .case-steps { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+    .retailvid-demo .case-steps button { border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 7px 11px; background: transparent; color: #e3ece6; cursor: pointer; font-size: .72rem; }
+    .retailvid-demo .case-steps button:hover { background: rgba(255,255,255,.08); }
+    .retailvid-frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+    .retailvid-frames img { display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; object-fit: cover; }
+    .retailvid-status { margin: 10px 0 0; color: #f2d9a8; font-size: .78rem; }
     .paper-figure { margin: 28px 0 0; }
     .paper-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
     .paper-figure figcaption { margin-top: 9px; color: var(--muted); }
@@ -443,30 +457,42 @@
     <section class="demo" id="demo">
       <div class="wrap">
         <div class="section-head">
-          <div class="section-kicker">QUALITATIVE DEMO</div>
-          <h2>How might a shopper respond to a recommendation?</h2>
-          <p>This synthetic RetailVid example pairs a given service action with an annotated reference outcome.</p>
+          <div class="section-kicker">QUALITATIVE DEMO <span id="casePosition">08 / 10</span></div>
+          <h2>Explore more shopper responses.</h2>
+          <p>Browse ten synthetic RetailVid cases. Each pairs a silent video with an observed customer state, a given service action, and its annotated reference outcome.</p>
+        </div>
+        <div class="retailvid-controls">
+          <label for="caseSelect">Choose a case</label>
+          <select id="caseSelect" aria-label="Choose a RetailVid case" disabled></select>
+          <span id="caseCount" class="retailvid-count"></span>
         </div>
         <div class="demo-grid retailvid-demo">
           <figure class="video-frame">
-            <video controls playsinline preload="metadata" poster="assets/demo_008-poster.jpg" aria-label="Silent synthetic RetailVid clip of a shopper comparing boxed products">
-              <source src="assets/demo_008.mp4" type="video/mp4">
-              <a href="assets/demo_008.mp4">Open the RetailVid MP4</a>
+            <video id="demoVideo" controls playsinline preload="metadata" poster="assets/retailvid/demo_008_1.jpg" aria-label="Silent synthetic RetailVid clip">
+              <source id="videoSource" src="assets/retailvid/demo_008.mp4" type="video/mp4">
+              <a id="videoFallback" href="assets/retailvid/demo_008.mp4">Open the RetailVid MP4</a>
             </video>
             <figcaption class="video-caption">
-              <div><strong>Comparing products at an electronics counter</strong><p>No audio</p></div>
+              <div><strong id="videoTitle">Comparing products at an electronics counter</strong><p>No audio · Synthetic retail video</p></div>
               <span class="mini-tag">SYNTHETIC RETAILVID</span>
             </figcaption>
           </figure>
-          <aside class="demo-side" aria-labelledby="demo-008-title">
-            <h3 id="demo-008-title">Case annotation</h3>
+          <aside class="demo-side" aria-labelledby="caseTitle">
+            <h3 id="caseTitle">Comparing products at an electronics counter</h3>
             <dl>
-              <div><dt>Observed customer behavior</dt><dd>The shopper examines a narrow white box, then sets it upright while keeping one hand on it.</dd></div>
-              <div><dt>Given service action · Recommend</dt><dd>The clerk suggests looking at the short charging cable first.</dd></div>
-              <div><dt>Reference outcome · Interest</dt><dd>The shopper says they still want to compare the other option and reaches for the wider box.</dd></div>
+              <div><dt>Observed customer behavior</dt><dd id="observedBehavior">Loading case annotation…</dd></div>
+              <div><dt id="actionLabel">Given service action</dt><dd id="actionContent"></dd></div>
+              <div><dt id="outcomeLabel">Reference outcome</dt><dd id="outcomeBehavior"></dd></div>
             </dl>
+            <div class="case-steps">
+              <button id="prevCase" type="button" aria-label="Previous case" disabled>← Previous</button>
+              <button id="nextCase" type="button" aria-label="Next case" disabled>Next →</button>
+            </div>
           </aside>
         </div>
+        <div id="frameStrip" class="retailvid-frames" aria-label="Selected input frames"></div>
+        <p id="demoStatus" class="retailvid-status" role="status" hidden></p>
+        <p class="demo-disclaimer">English summaries of the dataset annotations are shown for readability. These are references, not live model predictions or verified intervention effects.</p>
       </div>
     </section>
 
@@ -523,5 +549,6 @@
     });
 
   </script>
+  <script src="app.js"></script>
 </body>
 </html>
