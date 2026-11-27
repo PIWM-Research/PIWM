@@ -1,37 +1,37 @@
 [
   {
     "id": "prism_ego_001_clip_006283",
-    "scene": "零售店内的日用品货架前，多层货架陈列彩色包装商品，并配有黄色价签和促销标牌。",
+    "scene": "In front of a daily-goods shelf in a retail store. The multi-tier shelves display brightly packaged products, with yellow price tags and promotional signs.",
     "duration": 6.0,
-    "current_behavior": "第一视角朝向商品货架，右手抬在画面右下方、靠近货架前沿；两帧间保持查看陈列的朝向，未见拿取商品。",
+    "current_behavior": "First-person view facing the product shelf, with the right hand raised near the lower-right of the frame and close to the shelf edge. The view remains directed at the display; no product is visibly picked up.",
     "benchmark_reference_action": "greet"
   },
   {
     "id": "prism_ego_001_clip_009609",
-    "scene": "蔬菜摊位，金属货架和绿色塑料筐内摆放着红紫色洋葱，部分装在红色网袋中。",
+    "scene": "A vegetable stall with red-purple onions arranged on metal shelves and in green plastic crates; some onions are packed in red mesh bags.",
     "duration": 10.0,
-    "current_behavior": "顾客站在摊位前，伸手探向绿色筐内的洋葱。",
+    "current_behavior": "The shopper stands in front of the stall and reaches toward the onions in a green crate.",
     "benchmark_reference_action": "elicit"
   },
   {
     "id": "prism_ego_001_clip_009942",
-    "scene": "超市袋装谷物、豆类等干货陈列货架前。",
+    "scene": "In front of a supermarket shelf displaying packaged grains, beans, and other dry goods.",
     "duration": 10.0,
-    "current_behavior": "第一视角持续朝向袋装干货货架，在不同位置的陈列间移动视线；已询问“想买小袋的，怎么看分量？”，画面未见拿取商品。",
+    "current_behavior": "First-person view remains directed at the shelf of packaged dry goods, shifting attention between products in different areas. The shopper has asked, “I’d like to buy a small bag. How can I tell how much is in it?” No product is visibly picked up.",
     "benchmark_reference_action": "inform"
   },
   {
     "id": "prism_ego_000_clip_003674",
-    "scene": "商店冷藏陈列柜前，柜内分层摆放包装食品，层架前沿贴有黄色价签。",
+    "scene": "In front of a refrigerated display case in a store. Packaged foods are arranged on multiple shelves, with yellow price tags along the shelf edges.",
     "duration": 9.0,
-    "current_behavior": "第一视角朝向冷藏柜，随后视角靠近并向下移动，查看更完整的层架陈列；已表达想买酸奶拌燕麦，尚未见伸手拿取或确认具体商品。",
+    "current_behavior": "First-person view faces the refrigerated case, then moves closer and tilts downward to reveal more of the shelves. The shopper has said they want to buy yogurt to eat with oats; no specific product has been selected or visibly picked up.",
     "benchmark_reference_action": "recommend"
   },
   {
     "id": "prism_ego_000_clip_002358",
-    "scene": "生鲜蔬果陈列区，多种蔬果分格堆放，购物车紧邻货架。",
+    "scene": "A fresh-produce section with different fruits and vegetables arranged in separate bins and a shopping cart beside the display.",
     "duration": 6.0,
-    "current_behavior": "面向蔬果货架，手伸至购物车内，接触车内深绿色圆形蔬果。",
+    "current_behavior": "Facing the produce display, the shopper reaches into the shopping cart and touches a dark-green, round piece of produce.",
     "benchmark_reference_action": "hold"
   }
 ]
