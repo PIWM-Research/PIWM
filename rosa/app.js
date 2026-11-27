@@ -72,6 +72,14 @@ const englishAnnotations = {
   }
 };
 
+const realSceneNames = {
+  prism_ego_001_clip_006283: "Retail shelf with packaged goods",
+  prism_ego_001_clip_009609: "Vegetable stall",
+  prism_ego_001_clip_009942: "Packaged grains and beans",
+  prism_ego_000_clip_003674: "Refrigerated packaged foods",
+  prism_ego_000_clip_002358: "Fresh produce section"
+};
+
 const select = document.querySelector("#caseSelect");
 const video = document.querySelector("#demoVideo");
 const source = document.querySelector("#videoSource");
@@ -157,8 +165,71 @@ select.addEventListener("change", (event) => renderCase(Number(event.target.valu
 document.querySelector("#prevCase").addEventListener("click", () => renderCase(currentIndex - 1));
 document.querySelector("#nextCase").addEventListener("click", () => renderCase(currentIndex + 1));
 
+const realSelect = document.querySelector("#realSelect");
+const realVideo = document.querySelector("#realVideo");
+const realSource = document.querySelector("#realVideoSource");
+let realCases = [];
+let realCurrentIndex = 0;
+
+function renderRealCase(index) {
+  realCurrentIndex = (index + realCases.length) % realCases.length;
+  const item = realCases[realCurrentIndex];
+  const title = realSceneNames[item.id] || item.id;
+  const videoPath = `assets/prism/${item.id}.mp4`;
+  realSelect.value = String(realCurrentIndex);
+  realSource.src = videoPath;
+  realVideo.setAttribute("aria-label", `Real PRISM egocentric retail clip: ${title}`);
+  document.querySelector("#realVideoFallback").href = videoPath;
+  realVideo.load();
+
+  document.querySelector("#realVideoTitle").textContent = title;
+  document.querySelector("#realCaseTitle").textContent = title;
+  document.querySelector("#realPosition").textContent =
+    `${String(realCurrentIndex + 1).padStart(2, "0")} / ${realCases.length}`;
+  document.querySelector("#realScene").textContent = item.scene;
+  document.querySelector("#realBehavior").textContent = item.current_behavior;
+  document.querySelector("#realActionLabel").textContent =
+    `Benchmark reference action · ${actionNames[item.benchmark_reference_action] || item.benchmark_reference_action}`;
+  document.querySelector("#realAction").textContent =
+    actionNames[item.benchmark_reference_action] || item.benchmark_reference_action;
+  document.querySelector("#realDuration").textContent =
+    `${item.duration.toFixed(item.duration % 1 ? 1 : 0)} seconds`;
+}
+
+async function loadRealCases() {
+  const text = await fetchText("data/prism_samples.json");
+  realCases = JSON.parse(text);
+  if (!realCases.length) {
+    throw new Error("No real PRISM cases were found.");
+  }
+
+  realCases.forEach((item, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = `${String(index + 1).padStart(2, "0")} · ${realSceneNames[item.id] || item.id}`;
+    realSelect.appendChild(option);
+  });
+  realSelect.disabled = false;
+  document.querySelector("#prevReal").disabled = false;
+  document.querySelector("#nextReal").disabled = false;
+  document.querySelector("#realCount").textContent = `${realCases.length} real cases`;
+  renderRealCase(0);
+}
+
+realSelect.addEventListener("change", (event) => renderRealCase(Number(event.target.value)));
+document.querySelector("#prevReal").addEventListener("click", () => renderRealCase(realCurrentIndex - 1));
+document.querySelector("#nextReal").addEventListener("click", () => renderRealCase(realCurrentIndex + 1));
+
 loadCases().catch((error) => {
   status.hidden = false;
   status.textContent = `Unable to load case data: ${error.message}`;
+  console.error(error);
+});
+
+loadRealCases().catch((error) => {
+  status.hidden = false;
+  status.textContent = status.textContent
+    ? `${status.textContent} Unable to load real cases: ${error.message}`
+    : `Unable to load real cases: ${error.message}`;
   console.error(error);
 });

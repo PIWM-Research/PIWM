@@ -276,6 +276,12 @@
     .retailvid-frames { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
     .retailvid-frames img { display: block; width: 100%; aspect-ratio: 16 / 9; border: 1px solid rgba(255,255,255,.14); border-radius: 10px; object-fit: cover; }
     .retailvid-status { margin: 10px 0 0; color: #f2d9a8; font-size: .78rem; }
+    .demo-subsection + .demo-subsection { margin-top: 54px; border-top: 1px solid rgba(255,255,255,.16); padding-top: 38px; }
+    .demo-subsection-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
+    .demo-subsection-head h3 { margin: 5px 0 0; font-size: 1.28rem; }
+    .demo-subsection-head p { max-width: 620px; margin: 6px 0 0; color: #b9c9bf; font-size: .78rem; }
+    .demo-subsection-count { flex: 0 0 auto; border: 1px solid rgba(215,237,154,.25); border-radius: 999px; padding: 5px 9px; background: rgba(215,237,154,.08); color: var(--lime); font-size: .68rem; }
+    .demo-subsection.real { background: transparent; }
     .paper-figure { margin: 28px 0 0; }
     .paper-figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); }
     .paper-figure figcaption { margin-top: 9px; color: var(--muted); }
@@ -457,42 +463,94 @@
     <section class="demo" id="demo">
       <div class="wrap">
         <div class="section-head">
-          <div class="section-kicker">QUALITATIVE DEMO <span id="casePosition">08 / 10</span></div>
-          <h2>Explore more shopper responses.</h2>
-          <p>Browse ten synthetic RetailVid cases. Each pairs a silent video with an observed customer state, a given service action, and its annotated reference outcome.</p>
+          <div class="section-kicker">QUALITATIVE DEMO <span>01</span></div>
+          <h2>Explore shopper videos and responses.</h2>
+          <p>Browse generated RetailVid cases and real PRISM egocentric clips. Each example is paired with an observed shopper state and a reference service action.</p>
         </div>
-        <div class="retailvid-controls">
-          <label for="caseSelect">Choose a case</label>
-          <select id="caseSelect" aria-label="Choose a RetailVid case" disabled></select>
-          <span id="caseCount" class="retailvid-count"></span>
-        </div>
-        <div class="demo-grid retailvid-demo">
-          <figure class="video-frame">
-            <video id="demoVideo" controls playsinline preload="metadata" poster="assets/retailvid/demo_008_1.jpg" aria-label="Silent synthetic RetailVid clip">
-              <source id="videoSource" src="assets/retailvid/demo_008.mp4" type="video/mp4">
-              <a id="videoFallback" href="assets/retailvid/demo_008.mp4">Open the RetailVid MP4</a>
-            </video>
-            <figcaption class="video-caption">
-              <div><strong id="videoTitle">Comparing products at an electronics counter</strong><p>No audio · Synthetic retail video</p></div>
-              <span class="mini-tag">SYNTHETIC RETAILVID</span>
-            </figcaption>
-          </figure>
-          <aside class="demo-side" aria-labelledby="caseTitle">
-            <h3 id="caseTitle">Comparing products at an electronics counter</h3>
-            <dl>
-              <div><dt>Observed customer behavior</dt><dd id="observedBehavior">Loading case annotation…</dd></div>
-              <div><dt id="actionLabel">Given service action</dt><dd id="actionContent"></dd></div>
-              <div><dt id="outcomeLabel">Reference outcome</dt><dd id="outcomeBehavior"></dd></div>
-            </dl>
-            <div class="case-steps">
-              <button id="prevCase" type="button" aria-label="Previous case" disabled>← Previous</button>
-              <button id="nextCase" type="button" aria-label="Next case" disabled>Next →</button>
+        <div class="demo-subsection">
+          <div class="demo-subsection-head">
+            <div>
+              <div class="eyebrow">Generated video</div>
+              <h3>Synthetic RetailVid examples</h3>
+              <p>Generated silent clips with structured customer-state and reference-outcome annotations.</p>
             </div>
-          </aside>
+            <span id="caseCount" class="demo-subsection-count">Loading cases</span>
+          </div>
+          <div class="retailvid-controls">
+            <label for="caseSelect">Choose a case</label>
+            <select id="caseSelect" aria-label="Choose a RetailVid case" disabled></select>
+            <span id="casePosition" class="retailvid-count">08 / 10</span>
+          </div>
+          <div class="demo-grid retailvid-demo">
+            <figure class="video-frame">
+              <video id="demoVideo" controls playsinline preload="metadata" poster="assets/retailvid/demo_008_1.jpg" aria-label="Silent synthetic RetailVid clip">
+                <source id="videoSource" src="assets/retailvid/demo_008.mp4" type="video/mp4">
+                <a id="videoFallback" href="assets/retailvid/demo_008.mp4">Open the RetailVid MP4</a>
+              </video>
+              <figcaption class="video-caption">
+                <div><strong id="videoTitle">Comparing products at an electronics counter</strong><p>No audio · Synthetic retail video</p></div>
+                <span class="mini-tag">SYNTHETIC RETAILVID</span>
+              </figcaption>
+            </figure>
+            <aside class="demo-side" aria-labelledby="caseTitle">
+              <h3 id="caseTitle">Comparing products at an electronics counter</h3>
+              <dl>
+                <div><dt>Observed customer behavior</dt><dd id="observedBehavior">Loading case annotation…</dd></div>
+                <div><dt id="actionLabel">Given service action</dt><dd id="actionContent"></dd></div>
+                <div><dt id="outcomeLabel">Reference outcome</dt><dd id="outcomeBehavior"></dd></div>
+              </dl>
+              <div class="case-steps">
+                <button id="prevCase" type="button" aria-label="Previous case" disabled>← Previous</button>
+                <button id="nextCase" type="button" aria-label="Next case" disabled>Next →</button>
+              </div>
+            </aside>
+          </div>
+          <div id="frameStrip" class="retailvid-frames" aria-label="Selected input frames"></div>
         </div>
-        <div id="frameStrip" class="retailvid-frames" aria-label="Selected input frames"></div>
+
+        <div class="demo-subsection real">
+          <div class="demo-subsection-head">
+            <div>
+              <div class="eyebrow">Real video</div>
+              <h3>PRISM egocentric examples</h3>
+              <p>Real in-the-wild egocentric retail clips with scene descriptions and benchmark reference actions.</p>
+            </div>
+            <span id="realCount" class="demo-subsection-count">Loading real cases</span>
+          </div>
+          <div class="retailvid-controls">
+            <label for="realSelect">Choose a real case</label>
+            <select id="realSelect" aria-label="Choose a PRISM real-video case" disabled></select>
+            <span id="realPosition" class="retailvid-count">01 / 5</span>
+          </div>
+          <div class="demo-grid retailvid-demo">
+            <figure class="video-frame">
+              <video id="realVideo" controls playsinline preload="metadata" aria-label="Real PRISM egocentric retail clip">
+                <source id="realVideoSource" src="assets/prism/prism_ego_001_clip_006283.mp4" type="video/mp4">
+                <a id="realVideoFallback" href="assets/prism/prism_ego_001_clip_006283.mp4">Open the PRISM MP4</a>
+              </video>
+              <figcaption class="video-caption">
+                <div><strong id="realVideoTitle">Daily goods at a retail shelf</strong><p>No audio · Real egocentric video</p></div>
+                <span class="mini-tag">PRISM</span>
+              </figcaption>
+            </figure>
+            <aside class="demo-side" aria-labelledby="realCaseTitle">
+              <h3 id="realCaseTitle">Retail shelf scene</h3>
+              <dl>
+                <div><dt>Scene</dt><dd id="realScene">Loading scene description…</dd></div>
+                <div><dt>Observed customer behavior</dt><dd id="realBehavior"></dd></div>
+                <div><dt id="realActionLabel">Benchmark reference action</dt><dd id="realAction"></dd></div>
+                <div><dt>Duration</dt><dd id="realDuration"></dd></div>
+              </dl>
+              <div class="case-steps">
+                <button id="prevReal" type="button" aria-label="Previous real case" disabled>← Previous</button>
+                <button id="nextReal" type="button" aria-label="Next real case" disabled>Next →</button>
+              </div>
+            </aside>
+          </div>
+        </div>
+
         <p id="demoStatus" class="retailvid-status" role="status" hidden></p>
-        <p class="demo-disclaimer">English summaries of the dataset annotations are shown for readability. These are references, not live model predictions or verified intervention effects.</p>
+        <p class="demo-disclaimer">Generated summaries and PRISM annotations are reference data for qualitative illustration, not live model predictions or verified intervention effects.</p>
       </div>
     </section>
 
